@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TicketAI — Smart Classification Engine</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.0.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0b0e;--bg2:#12141a;--bg3:#1a1d26;--bg4:#222635;
+  --border:#2a2f45;--border2:#353c58;
+  --text1:#f0f2ff;--text2:#9ba3c8;--text3:#5c6488;
+  --purple:#7c6ff7;--purple2:#a89af7;--purple-dim:#2a2550;
+  --teal:#1fc494;--teal-dim:#0e3d2e;
+  --amber:#f0a030;--amber-dim:#3a2a10;
+  --red:#e84c4c;--red-dim:#3a1515;
+  --blue:#4a9ef8;--blue-dim:#0e2a48;
+  --card-r:14px;--r:8px;
+  font-family:system-ui,sans-serif
+}
+body{background:var(--bg);color:var(--text1);min-height:100vh}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.login-card{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--card-r);padding:2.5rem;width:100%;max-width:420px}
+.brand{display:flex;align-items:center;gap:10px;margin-bottom:2rem}
+.brand-icon{width:38px;height:38px;border-radius:10px;background:var(--purple-dim);display:flex;align-items:center;justify-content:center;border:1px solid var(--purple)}
+.brand-icon i{font-size:20px;color:var(--purple)}
+.brand-name{font-size:20px;font-weight:500;color:var(--text1)}
+.brand-sub{font-size:12px;color:var(--text3)}
+.login-title{font-size:22px;font-weight:500;margin-bottom:.4rem}
+.login-sub{font-size:14px;color:var(--text2);margin-bottom:2rem}
+.role-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.5rem}
+.role-btn{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:12px 8px;cursor:pointer;text-align:center;transition:all .2s;color:var(--text2);font-size:13px}
+.role-btn:hover{border-color:var(--border2);color:var(--text1)}
+.role-btn.selected{border-color:var(--purple);background:var(--purple-dim);color:var(--purple2)}
+.role-btn i{display:block;font-size:22px;margin-bottom:6px}
+.input-group{margin-bottom:1rem}
+.input-label{font-size:13px;color:var(--text2);margin-bottom:6px;display:block}
+.input-field{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;color:var(--text1);font-size:14px;outline:none;transition:border-color .2s;font-family:inherit}
+.input-field:focus{border-color:var(--purple)}
+.btn-primary{width:100%;background:var(--purple);color:#fff;border:none;border-radius:var(--r);padding:12px;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .2s;font-family:inherit}
+.btn-primary:hover{opacity:.9}
+.demo-hint{font-size:12px;color:var(--text3);text-align:center;margin-top:1rem}
+
+/* APP */
+#app-shell{display:none;flex-direction:column;min-height:100vh}
+.topbar{height:54px;background:var(--bg2);border-bottom:.5px solid var(--border);display:flex;align-items:center;padding:0 1.5rem;gap:1rem;position:sticky;top:0;z-index:100}
+.topbar-brand{display:flex;align-items:center;gap:8px;margin-right:auto}
+.topbar-brand-icon{width:28px;height:28px;border-radius:7px;background:var(--purple-dim);display:flex;align-items:center;justify-content:center;border:1px solid var(--purple)}
+.topbar-brand-icon i{font-size:14px;color:var(--purple)}
+.topbar-brand-name{font-size:15px;font-weight:500}
+.topbar-badge{font-size:11px;background:var(--purple-dim);color:var(--purple2);border:1px solid var(--purple);border-radius:20px;padding:2px 8px}
+.topbar-user{display:flex;align-items:center;gap:8px;cursor:pointer}
+.avatar{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500}
+.topbar-user-name{font-size:13px;color:var(--text2)}
+.topbar-role-pill{font-size:11px;border-radius:20px;padding:2px 8px;font-weight:500}
+.logout-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:var(--r);font-size:12px;cursor:pointer;font-family:inherit;transition:color .2s}
+.logout-btn:hover{color:var(--text1)}
+
+.app-body{display:flex;flex:1}
+.sidebar{width:210px;background:var(--bg2);border-right:.5px solid var(--border);padding:1rem 0;flex-shrink:0}
+.nav-section{padding:0 1rem;margin-bottom:1.5rem}
+.nav-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:.5rem;padding:0 .5rem}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);cursor:pointer;color:var(--text2);font-size:13.5px;transition:all .2s;position:relative}
+.nav-item:hover{background:var(--bg3);color:var(--text1)}
+.nav-item.active{background:var(--purple-dim);color:var(--purple2)}
+.nav-item i{font-size:16px}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;border-radius:20px;padding:1px 6px;min-width:18px;text-align:center}
+
+.main{flex:1;overflow-y:auto;padding:1.5rem}
+.page{display:none}
+.page.active{display:block}
+
+/* COMMON */
+.page-header{margin-bottom:1.5rem}
+.page-title{font-size:20px;font-weight:500;margin-bottom:.3rem}
+.page-sub{font-size:13px;color:var(--text2)}
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem}
+.stat-card{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--card-r);padding:1rem 1.25rem}
+.stat-label{font-size:12px;color:var(--text2);margin-bottom:.5rem}
+.stat-value{font-size:26px;font-weight:500}
+.stat-sub{font-size:12px;color:var(--text3);margin-top:.2rem}
+.card{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--card-r);padding:1.25rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.card-title{font-size:14px;font-weight:500;color:var(--text1)}
+
+/* TABLES */
+.ticket-table{width:100%;border-collapse:collapse}
+.ticket-table th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:8px 12px;text-align:left;border-bottom:.5px solid var(--border)}
+.ticket-table td{padding:10px 12px;font-size:13px;border-bottom:.5px solid var(--border);vertical-align:middle}
+.ticket-table tr:last-child td{border-bottom:none}
+.ticket-table tr:hover td{background:var(--bg3)}
+.users-table{width:100%;border-collapse:collapse}
+.users-table th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text3);padding:8px 12px;text-align:left;border-bottom:.5px solid var(--border)}
+.users-table td{padding:10px 12px;font-size:13px;border-bottom:.5px solid var(--border);vertical-align:middle}
+.users-table tr:last-child td{border-bottom:none}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px}
+.b-critical{background:var(--red-dim);color:var(--red);border:1px solid #4a2020}
+.b-high{background:var(--amber-dim);color:var(--amber);border:1px solid #4a3010}
+.b-medium{background:var(--blue-dim);color:var(--blue);border:1px solid #102a50}
+.b-low{background:var(--teal-dim);color:var(--teal);border:1px solid #0e3a28}
+.b-open{background:var(--blue-dim);color:var(--blue)}
+.b-progress{background:var(--amber-dim);color:var(--amber)}
+.b-resolved{background:var(--teal-dim);color:var(--teal)}
+.b-closed{background:#1a1d26;color:var(--text3)}
+.b-tag{background:var(--bg3);color:var(--text2);border:.5px solid var(--border)}
+
+.category-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot-bug{background:#e84c4c}.dot-billing{background:#f0a030}.dot-infra{background:#4a9ef8}
+.dot-feature{background:#7c6ff7}.dot-security{background:#1fc494}.dot-ux{background:#e84c8c}
+
+.action-btn{background:transparent;border:.5px solid var(--border);color:var(--text2);padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+.action-btn:hover{border-color:var(--border2);color:var(--text1)}
+
+/* FORM */
+.form-row{margin-bottom:1rem}
+.form-label{font-size:13px;color:var(--text2);margin-bottom:6px;display:block}
+.form-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px;color:var(--text1);font-size:14px;outline:none;transition:border-color .2s;font-family:inherit}
+.form-input:focus{border-color:var(--purple)}
+textarea.form-input{min-height:120px;resize:vertical}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ai-result{background:var(--purple-dim);border:1px solid var(--purple);border-radius:var(--r);padding:1rem;margin-top:1rem}
+.ai-result-title{font-size:12px;color:var(--purple2);font-weight:500;margin-bottom:.5rem;display:flex;align-items:center;gap:6px}
+.ai-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:.5rem}
+.ai-chip{background:var(--bg3);border:.5px solid var(--border2);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--text2)}
+.ai-chip strong{color:var(--text1)}
+.btn-submit{background:var(--purple);color:#fff;border:none;border-radius:var(--r);padding:10px 20px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;transition:opacity .2s}
+.btn-submit:hover{opacity:.9}
+.btn-submit:disabled{opacity:.5;cursor:not-allowed}
+@keyframes dots{0%{content:''}33%{content:'.'}66%{content:'..'}100%{content:'...'}}
+.loading-dots::after{content:'...';animation:dots 1.2s steps(3,end) infinite}
+
+/* ROLE PILLS */
+.role-pill-admin{background:#2a1550;color:#a855f7;border:1px solid #5a30a0;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.role-pill-agent{background:#0e2a48;color:#4a9ef8;border:1px solid #1a4070;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500}
+.role-pill-user{background:#0e3d2e;color:#1fc494;border:1px solid #1a5040;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:500}
+
+/* TOGGLE */
+.toggle{position:relative;display:inline-block;width:32px;height:18px}
+.toggle input{opacity:0;width:0;height:0}
+.slider-t{position:absolute;inset:0;background:var(--border2);border-radius:9px;cursor:pointer;transition:.2s}
+.slider-t:before{content:'';position:absolute;height:12px;width:12px;left:3px;bottom:3px;background:var(--text2);border-radius:50%;transition:.2s}
+.toggle input:checked+.slider-t{background:var(--teal)}
+.toggle input:checked+.slider-t:before{transform:translateX(14px);background:#fff}
+
+/* CHARTS */
+.bar-wrap{display:flex;align-items:flex-end;gap:8px;height:100px;padding-top:.5rem}
+.bar-col{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px}
+.bar{width:100%;border-radius:4px 4px 0 0;transition:height .5s ease}
+.bar-lbl{font-size:10px;color:var(--text3)}
+.bar-val{font-size:10px;color:var(--text2);font-weight:500}
+.donut-wrap{display:flex;align-items:center;gap:1.5rem}
+.legend{display:flex;flex-direction:column;gap:8px}
+.leg-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* NOTIFICATIONS */
+.notif-item{display:flex;gap:12px;padding:12px 0;border-bottom:.5px solid var(--border)}
+.notif-item:last-child{border-bottom:none}
+.notif-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.notif-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.notif-time{font-size:11px;color:var(--text3)}
+.dot-unread{width:6px;height:6px;border-radius:50%;background:var(--purple);flex-shrink:0;margin-top:6px}
+
+/* MODAL */
+#ticket-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:center;justify-content:center;padding:1rem}
+#ticket-modal.open{display:flex}
+.modal-card{background:var(--bg2);border:.5px solid var(--border);border-radius:var(--card-r);width:100%;max-width:600px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:1.25rem 1.5rem;border-bottom:.5px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.modal-body{padding:1.5rem}
+.modal-close{background:var(--bg3);border:.5px solid var(--border);color:var(--text2);width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit}
+.modal-close:hover{color:var(--text1)}
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:.5px solid var(--border);font-size:13px}
+.detail-row:last-child{border-bottom:none}
+.detail-key{color:var(--text2)}
+.timeline{margin-top:1rem}
+.tl-item{display:flex;gap:10px;margin-bottom:1rem;position:relative}
+.tl-dot{width:8px;height:8px;border-radius:50%;background:var(--purple);margin-top:5px;flex-shrink:0;position:relative;z-index:1}
+.tl-item:not(:last-child) .tl-dot::after{content:'';position:absolute;left:3px;top:8px;width:1px;height:calc(100% + 12px);background:var(--border);z-index:0}
+.tl-content{flex:1}
+.tl-title{font-size:13px;font-weight:500}
+.tl-time{font-size:11px;color:var(--text3);margin-top:2px}
+.comment-input-wrap{margin-top:1rem;display:flex;gap:8px}
+.comment-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:9px 14px;color:var(--text1);font-size:13px;outline:none;font-family:inherit}
+.comment-input:focus{border-color:var(--purple)}
+.btn-send{background:var(--purple);color:#fff;border:none;border-radius:var(--r);padding:9px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+
+/* SEARCH & FILTERS */
+.search-wrap{position:relative;margin-bottom:1rem}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:16px}
+.search-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:9px 14px 9px 36px;color:var(--text1);font-size:13px;outline:none;font-family:inherit}
+.search-input:focus{border-color:var(--purple)}
+.filter-row{display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap}
+.filter-pill{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+.filter-pill.active{background:var(--purple-dim);border-color:var(--purple);color:var(--purple2)}
+
+/* TOAST */
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--bg2);border:.5px solid var(--teal);color:var(--teal);padding:.75rem 1.25rem;border-radius:var(--r);font-size:13px;display:none;z-index:300;align-items:center;gap:8px}
+.toast.show{display:flex;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+<div class="login-card">
+  <div class="brand">
+    <div class="brand-icon"><i class="ti ti-bolt"></i></div>
+    <div><div class="brand-name">TicketAI</div><div class="brand-sub">Smart Classification Engine</div></div>
+  </div>
+  <h1 class="login-title">Sign in</h1>
+  <p class="login-sub">Choose your role to explore the platform</p>
+  <div class="role-grid">
+    <div class="role-btn selected" onclick="selectRole('admin',this)"><i class="ti ti-shield-check"></i>Admin</div>
+    <div class="role-btn" onclick="selectRole('agent',this)"><i class="ti ti-headset"></i>Agent</div>
+    <div class="role-btn" onclick="selectRole('user',this)"><i class="ti ti-user"></i>User</div>
+  </div>
+  <div class="input-group">
+    <label class="input-label" for="login-email">Email</label>
+    <input class="input-field" type="email" id="login-email" value="admin@ticketai.io">
+  </div>
+  <div class="input-group">
+    <label class="input-label" for="login-pass">Password</label>
+    <input class="input-field" type="password" id="login-pass" value="••••••••">
+  </div>
+  <button class="btn-primary" onclick="doLogin()">Sign in</button>
+  <p class="demo-hint">Demo mode — all roles pre-filled</p>
+</div>
+</div>
+
+<!-- APP SHELL -->
+<div id="app-shell">
+<div class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-brand-icon"><i class="ti ti-bolt"></i></div>
+    <span class="topbar-brand-name">TicketAI</span>
+    <span class="topbar-badge">v2.4</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <div class="topbar-user">
+      <div class="avatar" id="topbar-avatar"></div>
+      <span class="topbar-user-name" id="topbar-username"></span>
+      <span class="topbar-role-pill" id="topbar-role-pill"></span>
+    </div>
+    <button class="logout-btn" onclick="doLogout()"><i class="ti ti-logout" style="font-size:13px;vertical-align:-1px"></i> Sign out</button>
+  </div>
+</div>
+
+<div class="app-body">
+  <nav class="sidebar">
+    <div class="nav-section">
+      <div class="nav-label">Main</div>
+      <div class="nav-item active" onclick="nav('dashboard',this)" data-page="dashboard"><i class="ti ti-layout-dashboard"></i>Dashboard</div>
+      <div class="nav-item" onclick="nav('tickets',this)" data-page="tickets"><i class="ti ti-ticket"></i>Tickets<span class="nav-badge" id="open-badge">4</span></div>
+      <div class="nav-item" onclick="nav('new-ticket',this)" data-page="new-ticket"><i class="ti ti-plus"></i>New ticket</div>
+    </div>
+    <div class="nav-section" id="agent-section" style="display:none">
+      <div class="nav-label">Agent tools</div>
+      <div class="nav-item" onclick="nav('queue',this)" data-page="queue"><i class="ti ti-list-check"></i>My queue<span class="nav-badge">2</span></div>
+    </div>
+    <div class="nav-section" id="admin-section" style="display:none">
+      <div class="nav-label">Admin</div>
+      <div class="nav-item" onclick="nav('analytics',this)" data-page="analytics"><i class="ti ti-chart-bar"></i>Analytics</div>
+      <div class="nav-item" onclick="nav('users',this)" data-page="users"><i class="ti ti-users"></i>Team &amp; access</div>
+      <div class="nav-item" onclick="nav('settings',this)" data-page="settings"><i class="ti ti-settings"></i>Settings</div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">You</div>
+      <div class="nav-item" onclick="nav('notifications',this)" data-page="notifications"><i class="ti ti-bell"></i>Notifications<span class="nav-badge" id="notif-badge">3</span></div>
+    </div>
+  </nav>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div class="page-title" id="dash-title">Overview</div>
+        <div class="page-sub">Here's what's happening today</div>
+      </div>
+      <div class="cards-grid" id="stat-cards"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Tickets by priority</span></div>
+          <div class="bar-wrap" id="bar-chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Category breakdown</span></div>
+          <div class="donut-wrap">
+            <svg width="80" height="80" viewBox="0 0 80 80" id="donut-svg"><circle cx="40" cy="40" r="30" fill="none" stroke="#1a1d26" stroke-width="14"/></svg>
+            <div class="legend" id="donut-legend"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Recent activity</span></div>
+        <table class="ticket-table"><thead><tr><th>ID</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th></th></tr></thead><tbody id="recent-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- TICKETS -->
+    <div class="page" id="page-tickets">
+      <div class="page-header"><div class="page-title">All tickets</div><div class="page-sub">Manage and track all support requests</div></div>
+      <div class="search-wrap"><i class="ti ti-search search-icon"></i><input class="search-input" placeholder="Search by ID, subject, or category…" oninput="filterTickets(this.value)" id="ticket-search"></div>
+      <div class="filter-row" id="filter-row"></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="ticket-table"><thead><tr><th>ID</th><th>Subject</th><th>Category</th><th>Priority</th><th>Assigned</th><th>Status</th><th>Created</th><th></th></tr></thead><tbody id="tickets-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- NEW TICKET -->
+    <div class="page" id="page-new-ticket">
+      <div class="page-header"><div class="page-title">New ticket</div><div class="page-sub">Describe your issue — AI will classify and route it automatically</div></div>
+      <div style="display:grid;grid-template-columns:1fr 340px;gap:1rem">
+        <div class="card">
+          <div class="form-row"><label class="form-label" for="t-subject">Subject</label><input class="form-input" id="t-subject" placeholder="Brief description of the issue"></div>
+          <div class="form-row"><label class="form-label" for="t-desc">Description</label><textarea class="form-input" id="t-desc" placeholder="Provide full details…"></textarea></div>
+          <div class="form-grid">
+            <div class="form-row"><label class="form-label" for="t-product">Product area</label>
+              <select class="form-input" id="t-product"><option>Billing &amp; payments</option><option>Account &amp; login</option><option>Performance &amp; speed</option><option>Feature request</option><option>Security concern</option><option>Bug report</option><option>Other</option></select>
+            </div>
+            <div class="form-row"><label class="form-label" for="t-severity">Perceived severity</label>
+              <select class="form-input" id="t-severity"><option>Low</option><option>Medium</option><option selected>High</option><option>Critical</option></select>
+            </div>
+          </div>
+          <div id="ai-result-wrap" style="display:none">
+            <div class="ai-result">
+              <div class="ai-result-title"><i class="ti ti-sparkles"></i>AI classification</div>
+              <div class="ai-chips" id="ai-chips"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:1.25rem">
+            <button class="btn-submit" id="classify-btn" onclick="classifyTicket()"><i class="ti ti-sparkles" style="font-size:14px;vertical-align:-1px"></i> Classify with AI</button>
+            <button class="btn-submit" id="submit-btn" onclick="submitTicket()" style="display:none">Submit ticket</button>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:12px">
+            <div class="card-header" style="margin-bottom:.75rem"><span class="card-title">How it works</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="width:22px;height:22px;border-radius:6px;background:var(--purple-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:11px;font-weight:500;color:var(--purple)">1</span></div>
+                <div><div style="font-size:13px;font-weight:500">You describe the issue</div><div style="font-size:12px;color:var(--text2)">Fill in subject and description</div></div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="width:22px;height:22px;border-radius:6px;background:var(--purple-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:11px;font-weight:500;color:var(--purple)">2</span></div>
+                <div><div style="font-size:13px;font-weight:500">AI classifies it</div><div style="font-size:12px;color:var(--text2)">Category, priority, routing team</div></div>
+              </div>
+              <div style="display:flex;gap:10px;align-items:flex-start">
+                <div style="width:22px;height:22px;border-radius:6px;background:var(--purple-dim);display:flex;align-items:center;justify-content:center;flex-shrink:0"><span style="font-size:11px;font-weight:500;color:var(--purple)">3</span></div>
+                <div><div style="font-size:13px;font-weight:500">Auto-routed to agent</div><div style="font-size:12px;color:var(--text2)">Assigned based on workload and skill</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header" style="margin-bottom:.75rem"><span class="card-title">SLA targets</span></div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;justify-content:space-between;font-size:13px"><span class="badge b-critical">Critical</span><span style="color:var(--text2)">1 hour</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px"><span class="badge b-high">High</span><span style="color:var(--text2)">4 hours</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px"><span class="badge b-medium">Medium</span><span style="color:var(--text2)">24 hours</span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px"><span class="badge b-low">Low</span><span style="color:var(--text2)">72 hours</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUEUE -->
+    <div class="page" id="page-queue">
+      <div class="page-header"><div class="page-title">My queue</div><div class="page-sub">Tickets assigned to you, sorted by urgency</div></div>
+      <div class="card" style="padding:0;overflow:hidden">
+        <table class="ticket-table"><thead><tr><th>ID</th><th>Subject</th><th>Priority</th><th>SLA remaining</th><th>Status</th><th></th></tr></thead><tbody id="queue-tbody"></tbody></table>
+      </div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div class="page" id="page-analytics">
+      <div class="page-header"><div class="page-title">Analytics</div><div class="page-sub">Performance insights across the support team</div></div>
+      <div class="cards-grid">
+        <div class="stat-card"><div class="stat-label">Avg. resolution time</div><div class="stat-value" style="color:var(--teal)">3.2h</div><div class="stat-sub">↓ 18% vs last week</div></div>
+        <div class="stat-card"><div class="stat-label">AI accuracy</div><div class="stat-value" style="color:var(--purple)">94%</div><div class="stat-sub">Classification match</div></div>
+        <div class="stat-card"><div class="stat-label">First-contact resolution</div><div class="stat-value" style="color:var(--blue)">71%</div><div class="stat-sub">↑ 5% vs last week</div></div>
+        <div class="stat-card"><div class="stat-label">CSAT score</div><div class="stat-value" style="color:var(--amber)">4.7</div><div class="stat-sub">Out of 5.0</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">Volume last 7 days</span></div>
+          <div style="display:flex;align-items:flex-end;gap:6px;height:100px;padding-top:.5rem" id="vol-chart"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Agent performance</span></div>
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <tr style="border-bottom:.5px solid var(--border)"><th style="text-align:left;padding:6px;font-weight:500;font-size:11px;color:var(--text3)">Agent</th><th style="text-align:right;padding:6px;font-weight:500;font-size:11px;color:var(--text3)">Resolved</th><th style="text-align:right;padding:6px;font-weight:500;font-size:11px;color:var(--text3)">Avg time</th></tr>
+            <tr><td style="padding:8px 6px">Sipho N.</td><td style="text-align:right;padding:8px 6px;color:var(--teal)">24</td><td style="text-align:right;padding:8px 6px;color:var(--text2)">2.8h</td></tr>
+            <tr><td style="padding:8px 6px">Amara O.</td><td style="text-align:right;padding:8px 6px;color:var(--teal)">19</td><td style="text-align:right;padding:8px 6px;color:var(--text2)">3.5h</td></tr>
+            <tr><td style="padding:8px 6px">Yara H.</td><td style="text-align:right;padding:8px 6px;color:var(--teal)">22</td><td style="text-align:right;padding:8px 6px;color:var(--text2)">3.1h</td></tr>
+            <tr><td style="padding:8px 6px">Lee M.</td><td style="text-align:right;padding:8px 6px;color:var(--teal)">17</td><td style="text-align:right;padding:8px 6px;color:var(--text2)">4.1h</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="page-header"><div class="page-title">Team &amp; access</div><div class="page-sub">Manage users and role permissions</div></div>
+      <div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">
+        <table class="users-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Active</th><th>Last seen</th><th></th></tr></thead>
+          <tbody>
+            <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#2a1550;color:#a855f7">WN</div>Wandile N.</div></td><td style="color:var(--text2)">admin@ticketai.io</td><td><span class="role-pill-admin">Admin</span></td><td><label class="toggle"><input type="checkbox" checked><span class="slider-t"></span></label></td><td style="color:var(--text3)">Now</td><td><button class="action-btn" onclick="showToast('Edit user opened')">Edit</button></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#0e2a48;color:#4a9ef8">SN</div>Sipho N.</div></td><td style="color:var(--text2)">sipho@ticketai.io</td><td><span class="role-pill-agent">Agent</span></td><td><label class="toggle"><input type="checkbox" checked><span class="slider-t"></span></label></td><td style="color:var(--text3)">5m ago</td><td><button class="action-btn" onclick="showToast('Edit user opened')">Edit</button></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#0e2a48;color:#4a9ef8">AO</div>Amara O.</div></td><td style="color:var(--text2)">amara@ticketai.io</td><td><span class="role-pill-agent">Agent</span></td><td><label class="toggle"><input type="checkbox" checked><span class="slider-t"></span></label></td><td style="color:var(--text3)">1h ago</td><td><button class="action-btn" onclick="showToast('Edit user opened')">Edit</button></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#0e3d2e;color:#1fc494">TC</div>Thabo C.</div></td><td style="color:var(--text2)">thabo@acme.co</td><td><span class="role-pill-user">User</span></td><td><label class="toggle"><input type="checkbox" checked><span class="slider-t"></span></label></td><td style="color:var(--text3)">2h ago</td><td><button class="action-btn" onclick="showToast('Edit user opened')">Edit</button></td></tr>
+            <tr><td><div style="display:flex;align-items:center;gap:8px"><div class="avatar" style="width:28px;height:28px;font-size:11px;background:#0e3d2e;color:#1fc494">LM</div>Lee M.</div></td><td style="color:var(--text2)">lee.m@ticketai.io</td><td><span class="role-pill-user">User</span></td><td><label class="toggle"><input type="checkbox"><span class="slider-t"></span></label></td><td style="color:var(--text3)">3d ago</td><td><button class="action-btn" onclick="showToast('Edit user opened')">Edit</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Role permissions matrix</span></div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr><th style="padding:8px;text-align:left;font-size:11px;color:var(--text3);font-weight:500">Permission</th><th style="padding:8px;text-align:center;font-size:11px;color:var(--text3);font-weight:500">User</th><th style="padding:8px;text-align:center;font-size:11px;color:var(--text3);font-weight:500">Agent</th><th style="padding:8px;text-align:center;font-size:11px;color:var(--text3);font-weight:500">Admin</th></tr></thead>
+          <tbody>
+            <tr><td style="padding:8px;color:var(--text2)">Submit tickets</td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td></tr>
+            <tr><td style="padding:8px;color:var(--text2)">View own tickets</td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td></tr>
+            <tr><td style="padding:8px;color:var(--text2)">View all tickets</td><td style="text-align:center"><i class="ti ti-x" style="color:var(--text3)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td></tr>
+            <tr><td style="padding:8px;color:var(--text2)">Manage &amp; reassign tickets</td><td style="text-align:center"><i class="ti ti-x" style="color:var(--text3)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td></tr>
+            <tr><td style="padding:8px;color:var(--text2)">View analytics</td><td style="text-align:center"><i class="ti ti-x" style="color:var(--text3)"></i></td><td style="text-align:center"><i class="ti ti-x" style="color:var(--text3)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td></tr>
+            <tr><td style="padding:8px;color:var(--text2)">Manage team &amp; roles</td><td style="text-align:center"><i class="ti ti-x" style="color:var(--text3)"></i></td><td style="text-align:center"><i class="ti ti-x" style="color:var(--text3)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td></tr>
+            <tr><td style="padding:8px;color:var(--text2)">Configure AI settings</td><td style="text-align:center"><i class="ti ti-x" style="color:var(--text3)"></i></td><td style="text-align:center"><i class="ti ti-x" style="color:var(--text3)"></i></td><td style="text-align:center"><i class="ti ti-check" style="color:var(--teal)"></i></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="page" id="page-settings">
+      <div class="page-header"><div class="page-title">Settings</div><div class="page-sub">Configure AI classification and routing rules</div></div>
+      <div style="display:grid;gap:12px">
+        <div class="card">
+          <div class="card-header"><span class="card-title">AI classification model</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div><div style="font-size:14px;font-weight:500">Claude Sonnet 4</div><div style="font-size:12px;color:var(--text2)">Powers real-time ticket classification</div></div>
+            <span class="badge b-low">Active</span>
+          </div>
+          <div style="display:flex;gap:8px"><button class="action-btn" onclick="showToast('Model config opened')">Switch model</button><button class="action-btn" onclick="showToast('Viewing AI logs…')">View logs</button></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Routing rules</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Auto-assign critical tickets</div><div style="font-size:12px;color:var(--text2)">Immediately assign to senior agents</div></div><label class="toggle"><input type="checkbox" checked onchange="saveSetting('autoAssignCritical',this.checked)"><span class="slider-t"></span></label></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Workload balancing</div><div style="font-size:12px;color:var(--text2)">Distribute tickets evenly by agent load</div></div><label class="toggle"><input type="checkbox" checked onchange="saveSetting('workloadBalancing',this.checked)"><span class="slider-t"></span></label></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">Skill-based routing</div><div style="font-size:12px;color:var(--text2)">Match ticket category to agent expertise</div></div><label class="toggle"><input type="checkbox" checked onchange="saveSetting('skillBasedRouting',this.checked)"><span class="slider-t"></span></label></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><div><div style="font-size:13px;font-weight:500">SLA breach alerts</div><div style="font-size:12px;color:var(--text2)">Notify manager when SLA at risk</div></div><label class="toggle"><input type="checkbox" checked onchange="saveSetting('slaBreachAlerts',this.checked)"><span class="slider-t"></span></label></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Notification preferences</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">Email on new ticket</span><label class="toggle"><input type="checkbox" checked><span class="slider-t"></span></label></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">Slack on critical</span><label class="toggle"><input type="checkbox" checked><span class="slider-t"></span></label></div>
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:13px">Daily digest email</span><label class="toggle"><input type="checkbox"><span class="slider-t"></span></label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="page" id="page-notifications">
+      <div class="page-header"><div class="page-title">Notifications</div><div class="page-sub">Recent updates and alerts</div></div>
+      <div class="card">
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--red-dim)"><i class="ti ti-alert-triangle" style="color:var(--red);font-size:16px"></i></div>
+          <div><div class="notif-title">Critical ticket #TK-041 assigned to you</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Database outage affecting 500+ users — SLA: 1 hour</div><div class="notif-time">3 minutes ago</div></div>
+          <div class="dot-unread" style="margin-left:auto"></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--teal-dim)"><i class="ti ti-check" style="color:var(--teal);font-size:16px"></i></div>
+          <div><div class="notif-title">Ticket #TK-038 resolved</div><div style="font-size:12px;color:var(--text2);margin-top:2px">API latency issue resolved by Sipho N.</div><div class="notif-time">1 hour ago</div></div>
+          <div class="dot-unread" style="margin-left:auto"></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--purple-dim)"><i class="ti ti-sparkles" style="color:var(--purple);font-size:16px"></i></div>
+          <div><div class="notif-title">AI classification accuracy improved</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Model retrained on last 500 tickets — now at 94.2%</div><div class="notif-time">3 hours ago</div></div>
+          <div class="dot-unread" style="margin-left:auto"></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--amber-dim)"><i class="ti ti-clock" style="color:var(--amber);font-size:16px"></i></div>
+          <div><div class="notif-title">SLA warning — ticket #TK-036</div><div style="font-size:12px;color:var(--text2);margin-top:2px">High priority ticket approaching SLA breach in 45 min</div><div class="notif-time">5 hours ago</div></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon" style="background:var(--blue-dim)"><i class="ti ti-user-plus" style="color:var(--blue);font-size:16px"></i></div>
+          <div><div class="notif-title">New team member added</div><div style="font-size:12px;color:var(--text2);margin-top:2px">Lee Matsuda joined as Support Agent</div><div class="notif-time">Yesterday</div></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<!-- TICKET MODAL -->
+<div id="ticket-modal" role="dialog" aria-modal="true">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:4px" id="modal-ticket-id">TK-000</div>
+        <div style="font-size:16px;font-weight:500" id="modal-title">Ticket subject</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x" style="font-size:14px"></i></button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem" id="modal-badges"></div>
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-header" style="margin-bottom:.75rem"><span class="card-title">Details</span></div>
+        <div id="modal-details"></div>
+      </div>
+      <div class="card">
+        <div class="card-header" style="margin-bottom:.75rem"><span class="card-title">Timeline</span></div>
+        <div class="timeline" id="modal-timeline"></div>
+        <div class="comment-input-wrap">
+          <input class="comment-input" placeholder="Add a comment…" id="comment-input">
+          <button class="btn-send" onclick="addComment()"><i class="ti ti-send" style="font-size:14px"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="ti ti-check"></i><span id="toast-msg"></span></div>
+
+<script>
+const ROLES={
+  admin:{name:'Wandile N.',email:'admin@ticketai.io',initials:'WN',color:'#a855f7',bg:'#2a1550',label:'Admin',pill:'role-pill-admin'},
+  agent:{name:'Sipho Ndlovu',email:'sipho@ticketai.io',initials:'SN',color:'#4a9ef8',bg:'#0e2a48',label:'Agent',pill:'role-pill-agent'},
+  user:{name:'Thabo C.',email:'thabo@acme.co',initials:'TC',color:'#1fc494',bg:'#0e3d2e',label:'User',pill:'role-pill-user'}
+};
+const catColors={Infrastructure:'dot-infra',Billing:'dot-billing',Security:'dot-security','Bug report':'dot-bug','Feature request':'dot-feature','UX/UI':'dot-ux'};
+let currentRole='admin',filteredStatus='All',TICKETS=[],ticketTimelines={};
+
+async function loadTickets(){
+  try{const r=await fetch('/api/tickets');TICKETS=await r.json();}catch(e){console.error(e);}
+  TICKETS.forEach(t=>{ticketTimelines[t.id]=[{title:'Ticket submitted',time:'Created '+t.created},{title:'AI classified as '+t.category+' — '+t.priority,time:'Auto-classified'},...(t.status!=='Open'?[{title:'Assigned to '+t.assigned,time:'Routing complete'}]:[]),...(t.status==='Resolved'||t.status==='Closed'?[{title:'Resolved',time:'Issue closed'}]:[])];});
+}
+
+function selectRole(role,btn){
+  currentRole=role;
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('login-email').value=ROLES[role].email;
+}
+
+async function doLogin(){
+  await loadTickets();
+  const r=ROLES[currentRole];
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-shell').style.display='flex';
+  const av=document.getElementById('topbar-avatar');
+  av.textContent=r.initials;av.style.background=r.bg;av.style.color=r.color;
+  document.getElementById('topbar-username').textContent=r.name;
+  const rp=document.getElementById('topbar-role-pill');
+  rp.textContent=r.label;rp.className='topbar-role-pill '+r.pill;
+  document.getElementById('admin-section').style.display=currentRole==='admin'?'':'none';
+  document.getElementById('agent-section').style.display=(currentRole==='agent'||currentRole==='admin')?'':'none';
+  buildDashboard();buildTickets();buildQueue();buildBars();buildVolChart();
+}
+
+function doLogout(){
+  document.getElementById('app-shell').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+
+function nav(page,el){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+}
+
+function priorityBadge(p){const m={Critical:'b-critical',High:'b-high',Medium:'b-medium',Low:'b-low'};return`<span class="badge ${m[p]||'b-medium'}">${p}</span>`;}
+function statusBadge(s){const m={Open:'b-open','In progress':'b-progress',Resolved:'b-resolved',Closed:'b-closed'};return`<span class="badge ${m[s]||'b-open'}">${s}</span>`;}
+
+function buildDashboard(){
+  const all=TICKETS;
+  const open=all.filter(t=>t.status==='Open'||t.status==='In progress').length;
+  const resolved=all.filter(t=>t.status==='Resolved').length;
+  const critical=all.filter(t=>t.priority==='Critical').length;
+  const cards=currentRole==='user'
+    ?[{l:'My tickets',v:3,s:'Submitted'},{l:'Open',v:1,s:'In progress'},{l:'Resolved',v:2,s:'Closed'}]
+    :[{l:'Total tickets',v:all.length,s:'All time'},{l:'Open',v:open,s:'Needs attention',c:'var(--amber)'},{l:'Resolved',v:resolved,s:'This week',c:'var(--teal)'},{l:'Critical',v:critical,s:'Urgent',c:'var(--red)'}];
+  document.getElementById('stat-cards').innerHTML=cards.map(c=>`<div class="stat-card"><div class="stat-label">${c.l}</div><div class="stat-value" style="color:${c.c||'var(--text1)'}">${c.v}</div><div class="stat-sub">${c.s}</div></div>`).join('');
+  const recent=currentRole==='user'?all.slice(0,4):all.slice(0,6);
+  document.getElementById('recent-tbody').innerHTML=recent.map(t=>`<tr><td style="color:var(--text3);font-family:monospace;font-size:12px">${t.id}</td><td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.subject}</td><td><span class="category-dot ${catColors[t.category]||'dot-bug'}"></span>${t.category}</td><td>${priorityBadge(t.priority)}</td><td>${statusBadge(t.status)}</td><td><button class="action-btn" onclick="openModal('${t.id}')">View</button></td></tr>`).join('');
+  buildDonut(all);
+  document.getElementById('dash-title').textContent=currentRole==='user'?'My tickets':'Overview';
+  document.getElementById('open-badge').textContent=open;
+  document.getElementById('notif-badge').textContent=currentRole==='user'?1:3;
+}
+
+function buildTickets(){
+  renderTickets(filteredStatus,'');
+  const statuses=['All','Open','In progress','Resolved','Closed'];
+  document.getElementById('filter-row').innerHTML=statuses.map(s=>`<button class="filter-pill${s===filteredStatus?' active':''}" onclick="setFilter('${s}')">${s}</button>`).join('');
+}
+
+function setFilter(s){filteredStatus=s;document.querySelectorAll('.filter-pill').forEach(b=>b.classList.toggle('active',b.textContent===s));renderTickets(s,document.getElementById('ticket-search').value);}
+function filterTickets(q){renderTickets(filteredStatus,q);}
+
+function renderTickets(status,q){
+  let list=TICKETS;
+  if(currentRole==='user')list=list.slice(0,4);
+  if(status!=='All')list=list.filter(t=>t.status===status);
+  if(q)list=list.filter(t=>t.id.toLowerCase().includes(q.toLowerCase())||t.subject.toLowerCase().includes(q.toLowerCase())||t.category.toLowerCase().includes(q.toLowerCase()));
+  document.getElementById('tickets-tbody').innerHTML=list.length
+    ?list.map(t=>`<tr><td style="color:var(--text3);font-family:monospace;font-size:12px">${t.id}</td><td style="max-width:220px">${t.subject}</td><td><span class="category-dot ${catColors[t.category]||'dot-bug'}"></span>${t.category}</td><td>${priorityBadge(t.priority)}</td><td style="color:var(--text2);font-size:12px">${t.assigned}</td><td>${statusBadge(t.status)}</td><td style="color:var(--text3);font-size:12px">${t.created}</td><td><button class="action-btn" onclick="openModal('${t.id}')">View</button></td></tr>`).join('')
+    :'<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--text3)">No tickets match this filter</td></tr>';
+}
+
+function buildQueue(){
+  const q=TICKETS.filter(t=>t.status==='Open'||t.status==='In progress').slice(0,4);
+  const sla={Critical:'47 min',High:'3h 12m',Medium:'18h',Low:'2d 4h'};
+  document.getElementById('queue-tbody').innerHTML=q.map(t=>`<tr><td style="color:var(--text3);font-family:monospace;font-size:12px">${t.id}</td><td>${t.subject}</td><td>${priorityBadge(t.priority)}</td><td style="color:${t.priority==='Critical'?'var(--red)':t.priority==='High'?'var(--amber)':'var(--text2)'};font-size:13px">${sla[t.priority]}</td><td>${statusBadge(t.status)}</td><td><button class="action-btn" onclick="openModal('${t.id}')">Open</button></td></tr>`).join('');
+}
+
+function buildBars(){
+  const data=[{l:'Critical',v:1,c:'var(--red)'},{l:'High',v:3,c:'var(--amber)'},{l:'Medium',v:2,c:'var(--blue)'},{l:'Low',v:2,c:'var(--teal)'}];
+  const max=Math.max(...data.map(d=>d.v));
+  document.getElementById('bar-chart').innerHTML=data.map(d=>`<div class="bar-col"><div class="bar-val">${d.v}</div><div class="bar" style="height:${Math.round((d.v/max)*80)}px;background:${d.c}"></div><div class="bar-lbl">${d.l}</div></div>`).join('');
+}
+
+function buildDonut(all){
+  const cats=['Bug report','Billing','Infrastructure','Feature request','Security','UX/UI'];
+  const colors=['#e84c4c','#f0a030','#4a9ef8','#7c6ff7','#1fc494','#e84c8c'];
+  const counts=cats.map(c=>all.filter(t=>t.category===c).length);
+  const total=counts.reduce((a,b)=>a+b,0)||1;
+  let offset=0;const r=30,c=Math.PI*2*r;
+  const segments=counts.map((n,i)=>{const dash=Math.round((n/total)*c);const seg=`<circle cx="40" cy="40" r="${r}" fill="none" stroke="${colors[i]}" stroke-width="14" stroke-dasharray="${dash} ${c}" stroke-dashoffset="${-offset}" transform="rotate(-90 40 40)"/>`;offset+=dash;return seg;});
+  document.getElementById('donut-svg').innerHTML=`<circle cx="40" cy="40" r="30" fill="none" stroke="#1a1d26" stroke-width="14"/>${segments.join('')}`;
+  document.getElementById('donut-legend').innerHTML=cats.slice(0,5).map((cat,i)=>`<div class="leg-item"><div class="leg-dot" style="background:${colors[i]}"></div>${cat} <span style="color:var(--text1);margin-left:auto">${counts[i]}</span></div>`).join('');
+}
+
+function buildVolChart(){
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const vals=[8,12,7,15,11,4,6];const max=Math.max(...vals);
+  document.getElementById('vol-chart').innerHTML=days.map((d,i)=>`<div class="bar-col"><div class="bar-val">${vals[i]}</div><div class="bar" style="height:${Math.round((vals[i]/max)*80)}px;background:var(--purple)"></div><div class="bar-lbl">${d}</div></div>`).join('');
+}
+
+function openModal(id){
+  const t=TICKETS.find(x=>x.id===id);if(!t)return;
+  document.getElementById('modal-ticket-id').textContent=t.id;
+  document.getElementById('modal-title').textContent=t.subject;
+  document.getElementById('modal-badges').innerHTML=priorityBadge(t.priority)+' '+statusBadge(t.status)+` <span class="badge b-tag"><span class="category-dot ${catColors[t.category]||'dot-bug'}"></span>${t.category}</span>`;
+  document.getElementById('modal-details').innerHTML=['Assigned','Created','Description'].map((k,i)=>{const v=[t.assigned,t.created,t.desc][i];return`<div class="detail-row"><span class="detail-key">${k}</span><span style="color:${i===2?'var(--text2)':'var(--text1)'};max-width:320px;text-align:right">${v}</span></div>`;}).join('');
+  const tl=ticketTimelines[id]||[];
+  document.getElementById('modal-timeline').innerHTML=tl.map(e=>`<div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><div class="tl-title">${e.title}</div><div class="tl-time">${e.time}</div></div></div>`).join('');
+  document.getElementById('ticket-modal').classList.add('open');
+}
+
+document.getElementById('ticket-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+function closeModal(){document.getElementById('ticket-modal').classList.remove('open');}
+
+function addComment(){
+  const input=document.getElementById('comment-input');
+  if(!input.value.trim())return;
+  const tl=document.getElementById('modal-timeline');
+  const div=document.createElement('div');div.className='tl-item';
+  div.innerHTML=`<div class="tl-dot" style="background:var(--teal)"></div><div class="tl-content"><div class="tl-title">${input.value}</div><div class="tl-time">Just now</div></div>`;
+  tl.appendChild(div);input.value='';showToast('Comment added');
+}
+
+async function classifyTicket(){
+  const subj=document.getElementById('t-subject').value.trim();
+  const desc=document.getElementById('t-desc').value.trim();
+  if(!subj&&!desc){showToast('Add a subject or description first');return;}
+  const btn=document.getElementById('classify-btn');
+  btn.disabled=true;btn.innerHTML='<span class="loading-dots">Classifying</span>';
+  document.getElementById('ai-result-wrap').style.display='none';
+  try{
+    const resp=await fetch('/api/classify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subject:subj,desc,product:document.getElementById('t-product').value,severity:document.getElementById('t-severity').value})});
+    const result=await resp.json();
+    if(result.error)throw new Error(result.error);
+    const dotClass=catColors[result.category]||'dot-bug';
+    document.getElementById('ai-chips').innerHTML=[
+      `<div class="ai-chip"><span class="category-dot ${dotClass}"></span><strong>Category:</strong> ${result.category}</div>`,
+      `<div class="ai-chip"><strong>Priority:</strong> ${result.priority}</div>`,
+      `<div class="ai-chip"><strong>Route to:</strong> ${result.team}</div>`,
+      `<div class="ai-chip"><strong>Confidence:</strong> ${result.confidence}%</div>`,
+      `<div class="ai-chip" style="color:var(--purple2)">${result.reason}</div>`,
+      ...(result.tags||[]).map(tag=>`<div class="ai-chip">#${tag}</div>`)
+    ].join('');
+    document.getElementById('ai-result-wrap').style.display='block';
+    document.getElementById('submit-btn').style.display='inline-block';
+  }catch(e){
+    document.getElementById('ai-chips').innerHTML=`<div class="ai-chip" style="color:var(--red)">Classification error — ${e.message}</div>`;
+    document.getElementById('ai-result-wrap').style.display='block';
+    document.getElementById('submit-btn').style.display='inline-block';
+  }
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles" style="font-size:14px;vertical-align:-1px"></i> Re-classify';
+}
+
+async function submitTicket(){
+  const subj=document.getElementById('t-subject').value.trim();
+  const desc=document.getElementById('t-desc').value.trim();
+  if(!subj)return showToast('Please add a subject');
+  await fetch('/api/tickets',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subject:subj,desc,product:document.getElementById('t-product').value,severity:document.getElementById('t-severity').value})});
+  await loadTickets();
+  showToast('Ticket submitted and routed to your team');
+  document.getElementById('t-subject').value='';
+  document.getElementById('t-desc').value='';
+  document.getElementById('ai-result-wrap').style.display='none';
+  document.getElementById('submit-btn').style.display='none';
+  document.getElementById('classify-btn').innerHTML='<i class="ti ti-sparkles" style="font-size:14px;vertical-align:-1px"></i> Classify with AI';
+  buildDashboard();buildTickets();
+  setTimeout(()=>nav('tickets',document.querySelector('[data-page="tickets"]')),600);
+}
+
+async function saveSetting(key,val){
+  await fetch('/api/settings',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({[key]:val})});
+  showToast('Setting saved');
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
